@@ -15,10 +15,10 @@
       </v-row>
     </v-card-title>
     <v-card-text>
-      <folder-tree v-model="allFolders" @rename="renameFolder" @delete="removeFolder" />
+      <folder-tree v-model="allFolders" @rename="renameItem" @delete="removeItem" @move="moveItem" />
     </v-card-text>
 
-    <v-dialog v-model="dialog.namingDialog" width="300">
+    <v-dialog v-model="dialog.namingDialog" width="400">
       <v-card>
         <v-card-title primary-title>
           {{ dialog.title }}
@@ -39,8 +39,30 @@
       </v-card>
     </v-dialog>
 
-    <v-dialog v-model="dialog.deleteDialog" width="300">
-      <v-card v-if="this.dialog.edit">
+    <v-dialog v-model="dialog.moveDialog" width="500">
+      <v-card v-if="dialog.edit">
+        <v-card-title primary-title>
+          Move Folder - {{ dialog.edit.title }}
+        </v-card-title>
+
+        <v-card-text>
+          <folder-tree v-model="allFolders" />
+        </v-card-text>
+
+        <v-card-actions>
+          <v-spacer />
+          <v-btn color="primary" text @click="closeDialog">
+            Cancel
+          </v-btn>
+          <v-btn color="primary" elevation="0" @click="move">
+            Move
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="dialog.deleteDialog" width="400">
+      <v-card v-if="dialog.edit">
         <v-card-title primary-title>
           Are you sure you want to delete {{ dialog.edit.title }}?
         </v-card-title>
@@ -64,6 +86,21 @@ import { mapGetters, mapActions } from 'vuex'
 import FilterField from '@/components/input/FilterField'
 import FolderTree from '@/components/FolderTree'
 
+function itemMatches (items, keywords) {
+  return items.filter((item) => {
+    const data = `${item.title.toLowerCase()}`
+    const result = keywords.every(keyword => data.includes(keyword))
+    if (result) {
+      return result
+    } else if (item.children && item.children.length > 0) {
+      const subResults = itemMatches(item.children, keywords)
+      return subResults.length > 0 ? subResults : undefined
+    } else {
+      return undefined
+    }
+  })
+}
+
 export default {
   name: 'FolderSection',
 
@@ -73,9 +110,11 @@ export default {
   },
 
   data: () => ({
+    folderFilter: null,
     dialog: {
       edit: null,
       title: 'New folder',
+      moveDialog: false,
       namingDialog: false,
       deleteDialog: false,
       handler: () => ({}),
@@ -84,9 +123,18 @@ export default {
   }),
 
   computed: {
+    filteredDirectory () {
+      if (!this.folderFilter) {
+        return this.formQuestions
+      }
+
+      const keywords = this.folderFilter.toLowerCase().split(' ').filter(keyword => keyword)
+      return itemMatches(this.formQuestions, keywords)
+    },
+
     allFolders: {
       get () {
-        return this.folders
+        return this.filteredDirectory
       },
 
       set (value) {
@@ -94,29 +142,25 @@ export default {
       }
     },
 
-    folderFilter: {
-      get () {
-        return this.folderFilterValue
-      },
-
-      set (value) {
-        this.updateFolderFilter(value)
-      }
-    },
-
     ...mapGetters({
-      folderFilterValue: 'survey/folderFilter',
-      folders: 'survey/formQuestions'
+      selectedFolderPath: 'survey/selectedFolderPath',
+      formQuestions: 'survey/formQuestions'
     })
   },
 
   methods: {
-    removeFolder (folder) {
+    removeItem (folder) {
       this.dialog.edit = folder
       this.dialog.deleteDialog = true
     },
 
-    renameFolder (folder) {
+    moveItem (folder) {
+      this.dialog.title = 'Move folder'
+      this.dialog.edit = folder
+      this.dialog.moveDialog = true
+    },
+
+    renameItem (folder) {
       this.dialog.title = 'Rename folder'
       this.dialog.edit = folder
       this.dialog.folderName = folder.title
@@ -125,7 +169,8 @@ export default {
 
     newFolder () {
       this.dialog.edit = null
-      this.dialog.title = 'New folder'
+      const path = this.selectedFolderPath ? `${this.selectedFolderPath} / ` : ''
+      this.dialog.title = `${path}New folder`
       this.dialog.namingDialog = true
       this.dialog.folderName = 'Untitled folder'
     },
@@ -140,6 +185,11 @@ export default {
       this.closeDialog()
     },
 
+    move () {
+      this.moveFolder(this.dialog.edit.id)
+      this.closeDialog()
+    },
+
     remove () {
       this.deleteFolder(this.dialog.edit.id)
       this.closeDialog()
@@ -150,13 +200,14 @@ export default {
       this.dialog.folderName = null
       this.dialog.namingDialog = false
       this.dialog.deleteDialog = false
+      this.dialog.moveDialog = false
     },
 
     ...mapActions({
       deleteFolder: 'survey/deleteFolder',
+      moveFolder: 'survey/moveFolder',
       addNewFolder: 'survey/addNewFolder',
       updateFolder: 'survey/updateFolder',
-      updateFolderFilter: 'survey/updateFolderFilter',
       updateFormQuestions: 'survey/updateFormQuestions'
     })
   }

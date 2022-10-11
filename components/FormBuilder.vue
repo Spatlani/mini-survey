@@ -20,16 +20,14 @@
 
       <v-tabs-items v-model="activeTab">
         <v-tab-item>
-          <!-- <v-row>
+          <v-row v-if="selectedFolder">
             <v-col>
               <v-divider></v-divider>
-              <v-breadcrumbs :items="breadcrumbs">
-                <template #divider>
-                  <v-icon>mdi-chevron-right</v-icon>
-                </template>
-              </v-breadcrumbs>
+              <p class="mb-0 pl-2 font-weight-bold">
+                {{ selectedFolderPath }}
+              </p>
             </v-col>
-          </v-row> -->
+          </v-row>
           <v-container grid-list-xs class="accent lighten-1">
             <v-row v-if="!isDragging && emptyForm" class="drag-area" align="center" justify="center">
               <v-col>
@@ -87,6 +85,8 @@ export default {
     },
 
     ...mapGetters({
+      selectedFolderPath: 'survey/selectedFolderPath',
+      selectedFolder: 'survey/selectedFolder',
       allQuestions: 'survey/allQuestions',
       isDragging: 'survey/isDragging'
     })

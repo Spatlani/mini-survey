@@ -1,5 +1,5 @@
 <template>
-  <draggable v-bind="dragOptions" tag="div" :list="list" :value="value" @input="update">
+  <draggable v-bind="dragOptions" tag="div" class="item-container" :list="list" :value="value" @input="update" @change="onChange">
     <div v-for="el in allItems" :key="el.id" class="item-group cursor-move">
       <v-row align="center" :class="{ 'grey lighten-3': el.id === selectedFolder }" @click="setSelected(el)">
         <v-col cols="1" class="cursor-pointer" :class="{ 'hide-div': el.children?.length === 0 || el.type !== 'folder' }" @click="expandFolder(el)">
@@ -29,6 +29,9 @@
 
             <v-list>
               <v-list-item v-for="item in folderMenu" :key="item.title" @click="item.action(el)">
+                <v-list-item-icon class="mr-3">
+                  <v-icon v-text="item.icon" size="18" />
+                </v-list-item-icon>
                 <v-list-item-title>
                   {{ item.title }}
                 </v-list-item-title>
@@ -37,7 +40,7 @@
           </v-menu>
         </v-col>
       </v-row>
-      <folder-section v-show="el.id === expandedFolder" class="item-sub" :list="el.children" />
+      <folder-section class="item-sub" :child="true" @change="onChange" @rename="onRename" @delete="onDelete" @move="onMove" :list="el.children" />
     </div>
   </draggable>
 </template>
@@ -59,26 +62,36 @@ export default {
       required: false,
       type: Array,
       default: null
+    },
+
+    child: {
+      type: Boolean,
+      default: false
     }
   },
 
   data () {
     return {
       expandedFolder: null,
+
       dragOptions: {
         animation: 0,
         group: 'folder',
         disabled: false,
         ghostClass: 'ghost'
       },
+
       folderMenu: [{
         title: 'Rename',
+        icon: 'mdi-pencil',
         action: v => this.$emit('rename', v)
       }, {
         title: 'Move',
+        icon: 'mdi-cursor-move',
         action: v => this.$emit('move', v)
       }, {
         title: 'Delete',
+        icon: 'mdi-trash-can',
         action: v => this.$emit('delete', v)
       }]
     }
@@ -99,6 +112,30 @@ export default {
   },
 
   methods: {
+    onRename (value) {
+      this.$emit('rename', value)
+    },
+
+    onMove (value) {
+      this.$emit('move', value)
+    },
+
+    onDelete (value) {
+      this.$emit('delete', value)
+    },
+
+    onChange () {
+      if (this.child === true) {
+        this.$emit('change')
+      } else {
+        this.update(this.value)
+      }
+    },
+
+    update (value) {
+      this.$emit('input', value)
+    },
+
     expandFolder (folder) {
       if (this.expandedFolder === folder.id) {
         this.expandedFolder = null
@@ -113,10 +150,6 @@ export default {
       }
     },
 
-    update (value) {
-      this.$emit('input', value)
-    },
-
     ...mapActions({
       updateSelectedFolder: 'survey/updateSelectedFolder'
     })
@@ -125,11 +158,6 @@ export default {
 </script>
 
 <style>
-.item-container {
-  max-width: 20rem;
-  margin: 0;
-}
-
 .item {
   padding: 1rem;
   border: solid black 1px;

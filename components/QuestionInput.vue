@@ -53,7 +53,7 @@
 </template>
 
 <script>
-import { QuestionTypes } from '@/models/Question'
+import { Question, QuestionTypes } from '@/models/Question'
 
 export default {
   name: 'QuestionInput',
@@ -117,7 +117,7 @@ export default {
 
   methods: {
     updateInput (prop, newVal) {
-      const updated = { ...this.value }
+      const updated = new Question(this.value)
       updated[prop] = newVal
       this.$emit('input', updated)
     },

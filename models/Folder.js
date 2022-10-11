@@ -14,6 +14,6 @@ export default class Folder {
   }
 
   get path () {
-    return 'this._id'
+    return 'path'
   }
 }

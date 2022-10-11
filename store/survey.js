@@ -1,12 +1,9 @@
-import Vue from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import { Question } from '@/models/Question'
 import Folder from '@/models/Folder'
 
 export const state = () => ({
   isDragging: false,
-
-  setFolderFilter: null,
 
   formQuestions: [],
 
@@ -26,6 +23,20 @@ function flatQuestions (array) {
   return results
 }
 
+function findNestedPath (array, id) {
+  for (const item of array) {
+    if (item.id === id) {
+      return ` / ${item.title}`
+    }
+    if (item.children instanceof Array) {
+      const subpath = findNestedPath(item.children, id)
+      if (subpath) {
+        return ` / ${item.title}${subpath}`
+      }
+    }
+  }
+}
+
 function findNested (array, id) {
   for (const item of array) {
     if (item.id === id) {
@@ -38,18 +49,23 @@ function findNested (array, id) {
   return null
 }
 
-function removeFromTree (array, childNameToRemove) {
-  return array.filter(child => child.id !== childNameToRemove).map(child => removeFromTree(child, childNameToRemove))
+function removeFromTree (list, id) {
+  return list.map(item => item.type === 'folder' ? new Folder(item) : new Question(item)).filter((item) => {
+    if ('children' in item) {
+      item.children = removeFromTree(item.children, id)
+    }
+    return item.id !== id
+  })
 }
 
 export const getters = {
   isDragging: state => state.isDragging,
 
-  folderFilter: state => state.folderFilter,
-
   allQuestions: state => flatQuestions(state.formQuestions),
 
   formQuestions: state => state.formQuestions,
+
+  selectedFolderPath: state => findNestedPath(state.formQuestions, state.selectedFolder),
 
   selectedFolder: state => state.selectedFolder
 }
@@ -59,26 +75,32 @@ export const mutations = {
     state.isDragging = isDragging
   },
 
-  setFolderFilter (state, folderFilter) {
-    state.folderFilter = folderFilter
-  },
-
   addNewQuestion (state, question) {
     const newQuestion = new Question({ ...question, id: uuidv4() })
-    state.formQuestions.push(newQuestion)
+    if (state.selectedFolder) {
+      const folder = findNested(state.formQuestions, state.selectedFolder)
+      folder.children.push(newQuestion)
+    } else {
+      state.formQuestions.push(newQuestion)
+    }
   },
 
   setSingleQuestion (state, { question, index }) {
-    // const updatedQuestion = new Question(question)
-    Vue.set(state.formQuestions, index, question)
+    const updatedQuestion = new Question(question)
+    const oldQuestion = findNested(state.formQuestions, question.id)
+    oldQuestion.options = updatedQuestion.options
+    oldQuestion.type = updatedQuestion.type
+    oldQuestion.title = updatedQuestion.title
+    oldQuestion.required = updatedQuestion.required
   },
 
   setFormQuestions (state, formQuestions) {
     state.formQuestions = formQuestions
   },
 
-  removeQuestion (state, index) {
-    state.formQuestions.splice(index, 1)
+  removeQuestion (state, id) {
+    const updatedQuestion = removeFromTree(state.formQuestions, id)
+    state.formQuestions = updatedQuestion
   },
 
   addNewFolder (state, title) {
@@ -111,10 +133,6 @@ export const mutations = {
 }
 
 export const actions = {
-  updateFolderFilter: ({ commit }, search) => {
-    commit('setFolderFilter', search)
-  },
-
   updateDraggingStatus: ({ commit }, status) => {
     commit('setDraggingStatus', status)
   },
@@ -131,8 +149,8 @@ export const actions = {
     commit('setFormQuestions', formQuestions)
   },
 
-  deleteQuestion: ({ commit }, index) => {
-    commit('removeQuestion', index)
+  deleteQuestion: ({ commit }, id) => {
+    commit('removeQuestion', id)
   },
 
   addNewFolder: ({ commit }, folderName) => {

@@ -18,7 +18,7 @@
             </v-col>
 
             <v-col cols="auto" class="action mt-5 pr-0">
-              <v-btn small icon text title="Delete question" @click="remove(questionIndex)">
+              <v-btn small icon text title="Delete question" @click="remove(question.id)">
                 <v-icon>mdi-trash-can</v-icon>
               </v-btn>
             </v-col>
@@ -71,8 +71,8 @@ export default {
       this.updateSingleQuestion({ question, index })
     },
 
-    remove (index) {
-      this.deleteQuestion(index)
+    remove (questionId) {
+      this.deleteQuestion(questionId)
     },
 
     ...mapActions({
