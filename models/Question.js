@@ -3,17 +3,13 @@ export default class Question {
     if (!data) {
       data = {}
     }
-    this._id = data.id
+    this.id = data.id
     this.title = data.title
     this.type = data.type
     this.label = data.label
     this.icon = data.icon
     this.required = data.required || false
     this.options = data.options
-  }
-
-  get id () {
-    return this._id
   }
 }
 

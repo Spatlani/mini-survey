@@ -14,7 +14,7 @@
         </v-col>
       </v-row>
     </v-card-title>
-    <v-card-text>
+    <v-card-text class="folder-container">
       <folder-tree v-model="allFolders" @rename="renameItem" @delete="removeItem" @move="moveItem" />
     </v-card-text>
 
@@ -24,7 +24,7 @@
           {{ dialog.title }}
         </v-card-title>
         <v-card-text class="pt-4 pb-2">
-          <v-text-field v-model="dialog.folderName" placeholder="Enter folder name" outlined flat dense class="light-input" />
+          <v-text-field v-model="dialog.folderName" placeholder="Enter folder name" outlined flat dense class="light-input" @keyup.enter="crud" />
         </v-card-text>
 
         <v-card-actions>
@@ -213,3 +213,10 @@ export default {
   }
 }
 </script>
+
+<style>
+.folder-container > div {
+  height: calc(100vh - 580px);
+  overflow: auto;
+}
+</style>

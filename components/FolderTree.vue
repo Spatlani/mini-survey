@@ -1,5 +1,5 @@
 <template>
-  <draggable v-bind="dragOptions" tag="div" class="item-container" :list="list" :value="value" @input="update" @change="onChange">
+  <draggable v-bind="dragOptions" tag="div" :list="list" :value="value" @input="update" @change="onChange">
     <div v-for="el in allItems" :key="el.id" class="item-group cursor-move">
       <v-row align="center" :class="{ 'grey lighten-3': el.id === selectedFolder }" @click="setSelected(el)">
         <v-col cols="1" class="cursor-pointer" :class="{ 'hide-div': el.children?.length === 0 || el.type !== 'folder' }" @click="expandFolder(el)">

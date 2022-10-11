@@ -1,7 +1,7 @@
 <template>
   <draggable :value="questions" v-bind="dragOptions" tag="v-col" handle=".handle" group="question" class="drag-area my-n3" :class="{ 'dropzone': isDragging }" @input="updateForm">
     <transition-group type="transition" name="flip-list" tag="div">
-      <v-card v-for="(question, questionIndex) in questions" :key="questionIndex + 0" class="q-item my-3" flat>
+      <v-card v-for="(question, questionIndex) in filteredQuestions" :key="questionIndex + 0" class="q-item my-3" flat>
         <v-card-text class="pa-2">
           <v-row class="mx-0">
             <v-col cols="auto" class="handle cursor-move text-center pl-0 ml-n2">
@@ -57,6 +57,10 @@ export default {
   }),
 
   computed: {
+    filteredQuestions () {
+      return this.questions.filter(q => q.type !== 'folder')
+    },
+
     ...mapGetters({
       isDragging: 'survey/isDragging'
     })
@@ -64,7 +68,7 @@ export default {
 
   methods: {
     updateForm (data) {
-      this.updateFormQuestions(data)
+      this.updateSelectedQuestions(data)
     },
 
     updateQuestion (question, index) {
@@ -78,7 +82,7 @@ export default {
     ...mapActions({
       updateSingleQuestion: 'survey/updateSingleQuestion',
       deleteQuestion: 'survey/deleteQuestion',
-      updateFormQuestions: 'survey/updateFormQuestions'
+      updateSelectedQuestions: 'survey/updateSelectedQuestions'
     })
   }
 }

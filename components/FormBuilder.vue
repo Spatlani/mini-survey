@@ -20,11 +20,11 @@
 
       <v-tabs-items v-model="activeTab">
         <v-tab-item>
-          <v-row v-if="selectedFolder">
+          <v-row>
             <v-col>
               <v-divider></v-divider>
               <p class="mb-0 pl-2 font-weight-bold">
-                {{ selectedFolderPath }}
+                {{ selectedFolderPath || '/ Root' }}
               </p>
             </v-col>
           </v-row>
@@ -39,13 +39,13 @@
             </v-row>
 
             <v-row v-else>
-              <design-section :questions="allQuestions" :class="{ 'not-clickable': saving}" />
+              <design-section :questions="allQuestions" :class="{ 'not-clickable': saving }" />
             </v-row>
           </v-container>
         </v-tab-item>
 
         <v-tab-item>
-          <preview-section :questions="allQuestions" />
+          <preview-section :questions="flattenQuestions" />
         </v-tab-item>
       </v-tabs-items>
     </v-card>
@@ -77,7 +77,8 @@ export default {
 
   computed: {
     emptyForm () {
-      return this.allQuestions.length === 0
+      const filteredQuestions = this.allQuestions.filter(q => q.type !== 'folder')
+      return filteredQuestions.length === 0
     },
 
     formIcon () {
@@ -87,7 +88,9 @@ export default {
     ...mapGetters({
       selectedFolderPath: 'survey/selectedFolderPath',
       selectedFolder: 'survey/selectedFolder',
+      formQuestions: 'survey/formQuestions',
       allQuestions: 'survey/allQuestions',
+      flattenQuestions: 'survey/flattenQuestions',
       isDragging: 'survey/isDragging'
     })
   },

@@ -28,7 +28,7 @@ function findNestedPath (array, id) {
     if (item.id === id) {
       return ` / ${item.title}`
     }
-    if (item.children instanceof Array) {
+    if (item.children instanceof Array && item.children.length > 0) {
       const subpath = findNestedPath(item.children, id)
       if (subpath) {
         return ` / ${item.title}${subpath}`
@@ -38,15 +38,15 @@ function findNestedPath (array, id) {
 }
 
 function findNested (array, id) {
-  for (const item of array) {
+  let result = null
+  array.forEach((item) => {
     if (item.id === id) {
-      return item
+      result = item
+    } else if (item.children instanceof Array && item.children.length > 0) {
+      result = findNested(item.children, id)
     }
-    if (item.children instanceof Array) {
-      return findNested(item.children, id)
-    }
-  }
-  return null
+  })
+  return result
 }
 
 function removeFromTree (list, id) {
@@ -61,7 +61,16 @@ function removeFromTree (list, id) {
 export const getters = {
   isDragging: state => state.isDragging,
 
-  allQuestions: state => flatQuestions(state.formQuestions),
+  flattenQuestions: state => flatQuestions(state.formQuestions),
+
+  allQuestions: (state) => {
+    if (state.selectedFolder && state.formQuestions) {
+      const folder = findNested(state.formQuestions, state.selectedFolder)
+      return folder.children
+    } else {
+      return state.formQuestions
+    }
+  },
 
   formQuestions: state => state.formQuestions,
 
@@ -85,17 +94,29 @@ export const mutations = {
     }
   },
 
-  setSingleQuestion (state, { question, index }) {
+  setSingleQuestion (state, { question }) {
     const updatedQuestion = new Question(question)
     const oldQuestion = findNested(state.formQuestions, question.id)
-    oldQuestion.options = updatedQuestion.options
-    oldQuestion.type = updatedQuestion.type
-    oldQuestion.title = updatedQuestion.title
-    oldQuestion.required = updatedQuestion.required
+
+    if (oldQuestion) {
+      oldQuestion.options = updatedQuestion.options
+      oldQuestion.type = updatedQuestion.type
+      oldQuestion.title = updatedQuestion.title
+      oldQuestion.required = updatedQuestion.required
+    }
   },
 
   setFormQuestions (state, formQuestions) {
     state.formQuestions = formQuestions
+  },
+
+  setSelectedQuestions (state, formQuestions) {
+    if (state.selectedFolder) {
+      const folder = findNested(state.formQuestions, state.selectedFolder)
+      folder.children = formQuestions
+    } else {
+      state.formQuestions = formQuestions
+    }
   },
 
   removeQuestion (state, id) {
@@ -147,6 +168,10 @@ export const actions = {
 
   updateFormQuestions: ({ commit }, formQuestions) => {
     commit('setFormQuestions', formQuestions)
+  },
+
+  updateSelectedQuestions: ({ commit }, formQuestions) => {
+    commit('setSelectedQuestions', formQuestions)
   },
 
   deleteQuestion: ({ commit }, id) => {

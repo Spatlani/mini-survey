@@ -3,14 +3,10 @@ export default class Folder {
     if (!data) {
       data = {}
     }
-    this._id = data.id
+    this.id = data.id
     this.type = 'folder'
     this.title = data.title
     this.children = data.children || []
-  }
-
-  get id () {
-    return this._id
   }
 
   get path () {
