@@ -1,7 +1,8 @@
 <template>
-  <v-row>
+  <v-row class="pa-4">
     <v-col cols="3">
-      <questions-sidebar />
+      <questions-sidebar class="mb-2" />
+      <folder-section />
     </v-col>
     <v-col cols="9">
       <form-builder />
@@ -12,13 +13,15 @@
 <script>
 import QuestionsSidebar from '@/components/QuestionsSidebar'
 import FormBuilder from '@/components/FormBuilder'
+import FolderSection from '@/components/FolderSection'
 
 export default {
   name: 'SurveyBuilder',
 
   components: {
     QuestionsSidebar,
-    FormBuilder
+    FormBuilder,
+    FolderSection
   }
 }
 </script>

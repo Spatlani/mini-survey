@@ -14,7 +14,7 @@
             </v-col>
 
             <v-col>
-              <question-input :value="question" @input="e => updateQuestion(e, questionIndex)" />
+              <question-input :value="question" :index="questionIndex" @input="e => updateQuestion(e, questionIndex)" />
             </v-col>
 
             <v-col cols="auto" class="action mt-5 pr-0">
@@ -52,7 +52,7 @@ export default {
     dragOptions: {
       animation: 200,
       easing: 'cubic-bezier(1, 0, 0, 1)',
-      ghostClass: 'ghost-question'
+      ghostClass: 'ghost'
     }
   }),
 
@@ -85,12 +85,6 @@ export default {
 </script>
 
 <style>
-.ghost-question {
-  opacity: 0.5;
-  border-radius: 4px;
-  border: 1px solid var(--v-primary-lighten2);
-}
-
 .dropzone {
   border: 1px solid var(--v-primary-base);
   border-radius: 4px;

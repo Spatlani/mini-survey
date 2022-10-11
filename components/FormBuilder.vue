@@ -20,24 +20,34 @@
 
       <v-tabs-items v-model="activeTab">
         <v-tab-item>
+          <!-- <v-row>
+            <v-col>
+              <v-divider></v-divider>
+              <v-breadcrumbs :items="breadcrumbs">
+                <template #divider>
+                  <v-icon>mdi-chevron-right</v-icon>
+                </template>
+              </v-breadcrumbs>
+            </v-col>
+          </v-row> -->
           <v-container grid-list-xs class="accent lighten-1">
             <v-row v-if="!isDragging && emptyForm" class="drag-area" align="center" justify="center">
               <v-col>
                 <v-img :src="formIcon" height="40" contain />
-                <p class="text-center mt-4 font-weight-bold">
+                <p class="text-center mt-4 font-weight-medium">
                   Start dragging questions here to create your survey.
                 </p>
               </v-col>
             </v-row>
 
             <v-row v-else>
-              <design-section :questions="formQuestions" :class="{ 'not-clickable': saving}" />
+              <design-section :questions="allQuestions" :class="{ 'not-clickable': saving}" />
             </v-row>
           </v-container>
         </v-tab-item>
 
         <v-tab-item>
-          <preview-section :questions="formQuestions" />
+          <preview-section :questions="allQuestions" />
         </v-tab-item>
       </v-tabs-items>
     </v-card>
@@ -58,6 +68,7 @@ export default {
   },
 
   data: () => ({
+    breadcrumbs: [],
     activeTab: 0,
     saving: false,
     newForm: {
@@ -68,7 +79,7 @@ export default {
 
   computed: {
     emptyForm () {
-      return this.formQuestions.length === 0
+      return this.allQuestions.length === 0
     },
 
     formIcon () {
@@ -76,13 +87,13 @@ export default {
     },
 
     ...mapGetters({
-      formQuestions: 'survey/formQuestions',
+      allQuestions: 'survey/allQuestions',
       isDragging: 'survey/isDragging'
     })
   },
 
   watch: {
-    formQuestions () {
+    allQuestions () {
       if (this.activeTab) {
         this.activeTab = 0
       }
